@@ -1,0 +1,6 @@
+app:
+  port: 8080
+
+mongo:
+  uri: "mongodb://root:example@localhost:27017"
+  database: "mydb"
