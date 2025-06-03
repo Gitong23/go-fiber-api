@@ -1,47 +1,27 @@
-package user
+package adapters
 
 import (
 	"context"
 	"time"
 
+	userCore "github.com/Gitong23/go-fiber-hex-api/internal/core/user"
 	"github.com/Gitong23/go-fiber-hex-api/pkg/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type User struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Username  string             `json:"username" bson:"username"`
-	Password  string             `json:"password" bson:"password"`
-	Email     string             `json:"email" bson:"email"`
-	FirstName string             `json:"first_name" bson:"first_name"`
-	LastName  string             `json:"last_name" bson:"last_name"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
-}
-
-type UserRepository interface {
-	Create(ctx context.Context, user *User) error
-	FindByID(ctx context.Context, id string) (*User, error)
-	FindByUsername(ctx context.Context, username string) (*User, error)
-	FindByEmail(ctx context.Context, email string) (*User, error)
-	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, id string) error
-	FindAll(ctx context.Context) ([]*User, error)
-}
-
 type repository struct {
 	collection *mongo.Collection
 }
 
-func NewUserRepository() UserRepository {
+func NewUserRepository() userCore.IuserRepository {
 	return &repository{
 		collection: db.GetDatabase().Collection("users"),
 	}
 }
 
-func (r *repository) Create(ctx context.Context, user *User) error {
+func (r *repository) Create(ctx context.Context, user *userCore.User) error {
 	user.ID = primitive.NewObjectID()
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -50,13 +30,13 @@ func (r *repository) Create(ctx context.Context, user *User) error {
 	return err
 }
 
-func (r *repository) FindByID(ctx context.Context, id string) (*User, error) {
+func (r *repository) FindByID(ctx context.Context, id string) (*userCore.User, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
-	var user User
+	var user userCore.User
 	filter := bson.M{"_id": objectID}
 
 	err = r.collection.FindOne(ctx, filter).Decode(&user)
@@ -70,8 +50,8 @@ func (r *repository) FindByID(ctx context.Context, id string) (*User, error) {
 	return &user, nil
 }
 
-func (r *repository) FindByUsername(ctx context.Context, username string) (*User, error) {
-	var user User
+func (r *repository) FindByUsername(ctx context.Context, username string) (*userCore.User, error) {
+	var user userCore.User
 	filter := bson.M{"username": username}
 
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
@@ -85,8 +65,8 @@ func (r *repository) FindByUsername(ctx context.Context, username string) (*User
 	return &user, nil
 }
 
-func (r *repository) FindByEmail(ctx context.Context, email string) (*User, error) {
-	var user User
+func (r *repository) FindByEmail(ctx context.Context, email string) (*userCore.User, error) {
+	var user userCore.User
 	filter := bson.M{"email": email}
 
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
@@ -100,7 +80,7 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (*User, erro
 	return &user, nil
 }
 
-func (r *repository) Update(ctx context.Context, user *User) error {
+func (r *repository) Update(ctx context.Context, user *userCore.User) error {
 	user.UpdatedAt = time.Now()
 
 	filter := bson.M{"_id": user.ID}
@@ -121,16 +101,16 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *repository) FindAll(ctx context.Context) ([]*User, error) {
+func (r *repository) FindAll(ctx context.Context) ([]*userCore.User, error) {
 	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
-	var users []*User
+	var users []*userCore.User
 	for cursor.Next(ctx) {
-		var user User
+		var user userCore.User
 		if err := cursor.Decode(&user); err != nil {
 			return nil, err
 		}

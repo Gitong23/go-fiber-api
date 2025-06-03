@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/Gitong23/go-fiber-hex-api/config"
-	"github.com/Gitong23/go-fiber-hex-api/internal/auth"
-	"github.com/Gitong23/go-fiber-hex-api/internal/health"
-	"github.com/Gitong23/go-fiber-hex-api/internal/middleware"
+	"github.com/Gitong23/go-fiber-hex-api/internal/routes"
 	"github.com/Gitong23/go-fiber-hex-api/pkg/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -45,11 +43,10 @@ func main() {
 	// Setup middleware
 	app.Use(recover.New())
 	app.Use(cors.New())
-	app.Use(middleware.LoggingMiddleware)
+	// app.Use(middleware.LoggingMiddleware)
 
 	// Setup routes
-	health.SetupRoutes(app)
-	auth.SetupRoutes(app)
+	routes.SetupRoutes(app)
 
 	// Channel to listen for interrupt signal to trigger shutdown
 	quit := make(chan os.Signal, 1)

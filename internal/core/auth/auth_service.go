@@ -1,30 +1,22 @@
-package auth
+package core
 
 import (
 	"context"
 	"errors"
 	"time"
 
-	"github.com/Gitong23/go-fiber-hex-api/internal/user"
+	userCore "github.com/Gitong23/go-fiber-hex-api/internal/core/user"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// type RegisterResponse struct {
-// 	UserID    string `json:"user_id"`
-// 	FirstName string `json:"first_name"`
-// 	Email     string `json:"email"`
-// 	LastName  string `json:"last_name"`
-// }
-
-type Service interface {
-	Register(req RegisterRequest) (*user.User, error)
+type IauthService interface {
+	Register(req RegisterRequest) (*userCore.User, error)
 	Login(req LoginRequest) (*TokenDetails, error)
 }
 
-type service struct {
-	// repo      user.UserRepository
-	userRepo  user.UserRepository
+type authService struct {
+	userRepo  userCore.IuserRepository
 	jwtSecret string
 }
 
@@ -33,14 +25,14 @@ type TokenDetails struct {
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
-func NewAuthService(userRepo user.UserRepository, jwtSecret string) Service {
-	return &service{
+func NewAuthService(userRepo userCore.IuserRepository, jwtSecret string) IauthService {
+	return &authService{
 		userRepo,
 		jwtSecret,
 	}
 }
 
-func (s *service) Register(req RegisterRequest) (*user.User, error) {
+func (s *authService) Register(req RegisterRequest) (*userCore.User, error) {
 	ctx := context.Background()
 
 	// Check if user already exists
@@ -59,7 +51,7 @@ func (s *service) Register(req RegisterRequest) (*user.User, error) {
 		return nil, err
 	}
 
-	user := &user.User{
+	user := &userCore.User{
 		Username:  req.Username,
 		Email:     req.Email,
 		Password:  string(hashedPassword),
@@ -79,7 +71,7 @@ func (s *service) Register(req RegisterRequest) (*user.User, error) {
 	return user, nil
 }
 
-func (s *service) Login(req LoginRequest) (*TokenDetails, error) {
+func (s *authService) Login(req LoginRequest) (*TokenDetails, error) {
 	ctx := context.Background()
 
 	user, err := s.userRepo.FindByUsername(ctx, req.Username)
@@ -99,7 +91,7 @@ func (s *service) Login(req LoginRequest) (*TokenDetails, error) {
 	return s.GenerateToken(user)
 }
 
-func (s *service) GenerateToken(user *user.User) (*TokenDetails, error) {
+func (s *authService) GenerateToken(user *userCore.User) (*TokenDetails, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &jwt.RegisteredClaims{
 		Subject:   user.ID.Hex(),

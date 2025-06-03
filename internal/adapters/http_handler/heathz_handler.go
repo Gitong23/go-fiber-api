@@ -1,22 +1,22 @@
-package health
+package adapters
 
 import (
 	"context"
 	"time"
 
-	"github.com/Gitong23/go-fiber-hex-api/internal/response"
+	"github.com/Gitong23/go-fiber-hex-api/internal/core/response"
 	"github.com/Gitong23/go-fiber-hex-api/pkg/db"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type Handler struct{}
+type healthzHandler struct{}
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHealthzHandler() *healthzHandler {
+	return &healthzHandler{}
 }
 
-func (h *Handler) HealthCheck(c *fiber.Ctx) error {
+func (h *healthzHandler) HealthCheck(c *fiber.Ctx) error {
 	// Check database connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -34,9 +34,4 @@ func (h *Handler) HealthCheck(c *fiber.Ctx) error {
 		"database":  dbStatus,
 		"timestamp": time.Now(),
 	}))
-}
-
-func SetupRoutes(app *fiber.App) {
-	handler := NewHandler()
-	app.Get("/health", handler.HealthCheck)
 }

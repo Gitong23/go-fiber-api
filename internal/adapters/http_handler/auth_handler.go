@@ -1,22 +1,23 @@
-package auth
+package adapters
 
 import (
 	"net/http"
 
-	"github.com/Gitong23/go-fiber-hex-api/internal/response"
+	core "github.com/Gitong23/go-fiber-hex-api/internal/core/auth"
+	"github.com/Gitong23/go-fiber-hex-api/internal/core/response"
 	"github.com/gofiber/fiber/v2"
 )
 
-type Handler struct {
-	service Service
+type IauthHandler struct {
+	service core.IauthService
 }
 
-func NewHandler(service Service) *Handler {
-	return &Handler{service: service}
+func NewAuthHandler(service core.IauthService) *IauthHandler {
+	return &IauthHandler{service: service}
 }
 
-func (h *Handler) Register(c *fiber.Ctx) error {
-	var req RegisterRequest
+func (h *IauthHandler) Register(c *fiber.Ctx) error {
+	var req core.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(response.ErrorResponse("Invalid request payload"))
 	}
@@ -29,8 +30,8 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(response.SuccessResponse("User registered successfully", user))
 }
 
-func (h *Handler) Login(c *fiber.Ctx) error {
-	var req LoginRequest
+func (h *IauthHandler) Login(c *fiber.Ctx) error {
+	var req core.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(response.ErrorResponse("Invalid request payload"))
 	}
@@ -41,17 +42,4 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(response.SuccessResponse("Login successful", token))
-}
-
-type RegisterRequest struct {
-	Username  string `json:"username" validate:"required,min=3,max=50"`
-	Password  string `json:"password" validate:"required,min=6"`
-	Email     string `json:"email" validate:"required,email"`
-	FirstName string `json:"first_name" validate:"required,min=2,max=50"`
-	LastName  string `json:"last_name" validate:"required,min=2,max=50"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
 }
