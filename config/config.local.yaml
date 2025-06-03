@@ -1,6 +1,16 @@
 app:
   port: 8888
+  name: "go-fiber-hex-api"
+  env: "local"
 
 mongo:
   uri: "mongodb://root:example@localhost:27017"
   database: "mydb"
+
+jwt:
+  secret: "your-super-secret-jwt-key-change-this-in-production"
+  expires_in: "24h"
+
+logging:
+  level: "info"
+  format: "json"

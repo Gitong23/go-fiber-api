@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Gitong23/go-fiber-hex-api/config"
 	userCore "github.com/Gitong23/go-fiber-hex-api/internal/core/user"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -27,8 +28,8 @@ type TokenDetails struct {
 
 func NewAuthService(userRepo userCore.IuserRepository, jwtSecret string) IauthService {
 	return &authService{
-		userRepo,
-		jwtSecret,
+		userRepo:  userRepo,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -36,7 +37,6 @@ func (s *authService) Register(req RegisterRequest) (*userCore.User, error) {
 	ctx := context.Background()
 
 	// Check if user already exists
-	// existingUser, err := s.userService.GetUserByUsername(ctx, req.Username)
 	existingUser, err := s.userRepo.FindByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, err
@@ -92,11 +92,19 @@ func (s *authService) Login(req LoginRequest) (*TokenDetails, error) {
 }
 
 func (s *authService) GenerateToken(user *userCore.User) (*TokenDetails, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	// Parse expiration duration from config
+	expirationDuration, err := time.ParseDuration(config.AppConfig.JWT.ExpiresIn)
+	if err != nil {
+		// Fallback to 24 hours if parsing fails
+		expirationDuration = 24 * time.Hour
+	}
+
+	expirationTime := time.Now().Add(expirationDuration)
 	claims := &jwt.RegisteredClaims{
 		Subject:   user.ID.Hex(),
 		ExpiresAt: jwt.NewNumericDate(expirationTime),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		Issuer:    config.AppConfig.App.Name,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
