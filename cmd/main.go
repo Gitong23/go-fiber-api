@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Gitong23/go-fiber-hex-api/config"
+	"github.com/Gitong23/go-fiber-hex-api/internal/core/middleware"
 	"github.com/Gitong23/go-fiber-hex-api/internal/routes"
 	"github.com/Gitong23/go-fiber-hex-api/pkg/db"
 	"github.com/gofiber/fiber/v2"
@@ -43,7 +44,7 @@ func main() {
 	// Setup middleware
 	app.Use(recover.New())
 	app.Use(cors.New())
-	// app.Use(middleware.LoggingMiddleware)
+	app.Use(middleware.LoggingMiddleware)
 
 	// Setup routes
 	routes.SetupRoutes(app)
